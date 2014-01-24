@@ -444,3 +444,6 @@ CREATE VIEW `cloud`.`user_vm_view` AS
         `cloud`.`user_vm_details` `custom_ram_size`  ON (((`custom_ram_size`.`vm_id` = `cloud`.`vm_instance`.`id`) and (`custom_ram_size`.`name` = 'memory')));
 
 INSERT INTO `cloud`.`configuration`(category, instance, component, name, value, description, default_value) VALUES ('NetworkManager', 'DEFAULT', 'management-server', 'vm.network.nic.max.secondary.ipaddresses', NULL, 'Specify the number of secondary ip addresses per nic per vm', '256') ON DUPLICATE KEY UPDATE category='NetworkManager';
+
+ALTER TABLE `cloud`.`vpc_offerings` ADD COLUMN supports_region_level_vpc boolean default false;
+ALTER TABLE `cloud`.`network_offerings` ADD COLUMN supports_streched_l2 boolean default false;
