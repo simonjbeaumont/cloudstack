@@ -2786,7 +2786,7 @@ public class ApiResponseHelper implements ResponseGenerator {
         response.setCidr(vpc.getCidr());
         response.setRestartRequired(vpc.isRestartRequired());
         response.setNetworkDomain(vpc.getNetworkDomain());
-
+        response.setRegionLevelVpc(vpc.isRegionLevelVpc());
         Map<Service, Set<Provider>> serviceProviderMap = ApiDBUtils.listVpcOffServices(vpc.getVpcOfferingId());
         List<ServiceResponse> serviceResponses = new ArrayList<ServiceResponse>();
         for (Service service : serviceProviderMap.keySet()) {

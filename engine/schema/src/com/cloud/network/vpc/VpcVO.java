@@ -45,7 +45,7 @@ public class VpcVO implements Vpc {
     String displayText;
 
     @Column(name = "zone_id")
-    long zoneId;
+    Long zoneId;
 
     @Column(name = "cidr")
     private String cidr = null;
@@ -75,11 +75,15 @@ public class VpcVO implements Vpc {
     @Column(name = "restart_required")
     boolean restartRequired = false;
 
+    @Column(name = "region_level_vpc")
+    boolean regionLevelVpc = false;
+
     public VpcVO() {
         this.uuid = UUID.randomUUID().toString();
     }
 
-    public VpcVO(long zoneId, String name, String displayText, long accountId, long domainId, long vpcOffId, String cidr, String networkDomain) {
+    public VpcVO(Long zoneId, String name, String displayText, long accountId, long domainId, long vpcOffId,
+                 String cidr, String networkDomain, boolean regionLevelVpc) {
         this.zoneId = zoneId;
         this.name = name;
         this.displayText = displayText;
@@ -90,6 +94,7 @@ public class VpcVO implements Vpc {
         this.state = State.Enabled;
         this.networkDomain = networkDomain;
         this.vpcOfferingId = vpcOffId;
+        this.regionLevelVpc = regionLevelVpc;
     }
 
     @Override
@@ -176,5 +181,10 @@ public class VpcVO implements Vpc {
     @Override
     public boolean isRestartRequired() {
         return restartRequired;
+    }
+
+    @Override
+    public boolean isRegionLevelVpc() {
+        return regionLevelVpc;
     }
 }

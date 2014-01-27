@@ -72,4 +72,9 @@ public interface Vpc extends ControlledEntity, Identity, InternalIdentity {
      */
     boolean isRestartRequired();
 
+    /**
+     *
+     * @return true if VPC spans multiple zones in the region
+     */
+    boolean isRegionLevelVpc();
 }

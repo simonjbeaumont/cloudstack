@@ -447,3 +447,4 @@ INSERT INTO `cloud`.`configuration`(category, instance, component, name, value, 
 
 ALTER TABLE `cloud`.`vpc_offerings` ADD COLUMN supports_region_level_vpc boolean default false;
 ALTER TABLE `cloud`.`network_offerings` ADD COLUMN supports_streched_l2 boolean default false;
+ALTER TABLE `cloud`.`vpc` ADD COLUMN region_level_vpc boolean default false;

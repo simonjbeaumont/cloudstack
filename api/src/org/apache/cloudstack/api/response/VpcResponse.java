@@ -107,6 +107,10 @@ public class VpcResponse extends BaseResponse implements ControlledEntityRespons
     @Param(description = "the list of resource tags associated with the project", responseObject = ResourceTagResponse.class)
     private List<ResourceTagResponse> tags;
 
+    @SerializedName((ApiConstants.REGION_LEVEL_VPC))
+    @Param(description = "true if VPC is region level")
+    private Boolean regionLevelVpc;
+
     public void setId(String id) {
         this.id = id;
     }
@@ -190,5 +194,9 @@ public class VpcResponse extends BaseResponse implements ControlledEntityRespons
 
     public void setTags(List<ResourceTagResponse> tags) {
         this.tags = tags;
+    }
+
+    public void setRegionLevelVpc(Boolean regionLevelVpc) {
+        this.regionLevelVpc = regionLevelVpc;
     }
 }
