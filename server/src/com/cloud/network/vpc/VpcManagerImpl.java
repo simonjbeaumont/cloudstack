@@ -2190,7 +2190,7 @@ public class VpcManagerImpl extends ManagerBase implements VpcManager, VpcProvis
             networkDomain = vpc.getNetworkDomain();
         }
 
-        if (vpc.getZoneId() != zoneId) {
+        if (!vpc.isRegionLevelVpc() && vpc.getZoneId() != zoneId) {
             throw new InvalidParameterValueException("New network doesn't belong to vpc zone");
         }
 
