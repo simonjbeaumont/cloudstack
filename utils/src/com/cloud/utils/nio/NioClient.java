@@ -22,9 +22,6 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-
 import org.apache.log4j.Logger;
 
 public class NioClient extends NioConnection {
@@ -67,28 +64,10 @@ public class NioClient extends NioConnection {
         	throw e;
         }
 
-        SSLEngine sslEngine = null;
-        try {
-        	// Begin SSL handshake in BLOCKING mode
-        	sch.configureBlocking(true);
-
-        	SSLContext sslContext = Link.initSSLContext(true);
-        	sslEngine = sslContext.createSSLEngine(_host, _port);
-        	sslEngine.setUseClientMode(true);
-
-        	Link.doHandshake(sch, sslEngine, true);
-        	s_logger.info("SSL: Handshake done");
-            s_logger.info("Connected to " + _host + ":" + _port);
-        } catch (Exception e) {
-        	_selector.close();
-        	throw new IOException("SSL: Fail to init SSL! " + e);
-        }
-        
         Task task = null;
         try {
             sch.configureBlocking(false);
             Link link = new Link(addr, this);
-            link.setSSLEngine(sslEngine);
             SelectionKey key = sch.register(_selector, SelectionKey.OP_READ);
             link.setKey(key);
             key.attach(link);

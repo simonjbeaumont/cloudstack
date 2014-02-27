@@ -25,8 +25,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import javax.net.ssl.SSLEngine;
-
 import org.apache.log4j.Logger;
 
 import com.cloud.agent.AgentManager;
@@ -185,11 +183,6 @@ public class ClusteredAgentAttache extends ConnectedAgentAttache implements Rout
                     }
                     continue;
                 }
-                
-                SSLEngine sslEngine = s_clusteredAgentMgr.getSSLEngine(peerName);
-                if (sslEngine == null) {
-                    throw new AgentUnavailableException("Unable to get SSLEngine of peer " + peerName, _id);
-                }
 
                 try {
                     if (s_logger.isDebugEnabled()) {
@@ -199,7 +192,7 @@ public class ClusteredAgentAttache extends ConnectedAgentAttache implements Rout
                         SynchronousListener synchronous = (SynchronousListener)listener;
                         synchronous.setPeer(peerName);
                     }
-                    Link.write(ch, req.toBytes(), sslEngine);
+                    Link.write(ch, req.toBytes());
                     error = false;
                     return;
                 } catch (IOException e) {

@@ -100,6 +100,10 @@ under the License.
      <priority value="DEBUG"/>
    </category>
 
+  <category name="com.cloud.utils.nio">
+     <priority value="TRACE"/>
+   </category>
+
    <logger name="apiserver.com.cloud" additivity="false">
       <level value="DEBUG"/>
       <appender-ref ref="APISERVER"/>

@@ -128,7 +128,7 @@ under the License.
    </category>
 
    <category name="com.cloud.utils.nio">
-     <priority value="INFO"/>
+     <priority value="TRACE"/>
    </category>
    
    <!-- Limit the org.apache category to INFO as its DEBUG is verbose -->
