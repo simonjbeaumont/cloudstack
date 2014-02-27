@@ -35,9 +35,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-
 import org.apache.log4j.Logger;
 
 import com.cloud.utils.concurrency.NamedThreadFactory;
@@ -183,38 +180,9 @@ public abstract class NioConnection implements Runnable {
         if (s_logger.isTraceEnabled()) {
             s_logger.trace("Connection accepted for " + socket);
         }
-        
-        // Begin SSL handshake in BLOCKING mode
-        socketChannel.configureBlocking(true);
-
-        SSLEngine sslEngine = null;
-        try {
-            SSLContext sslContext = Link.initSSLContext(false);
-            sslEngine = sslContext.createSSLEngine();
-            sslEngine.setUseClientMode(false);
-            sslEngine.setNeedClientAuth(false);
-
-            Link.doHandshake(socketChannel, sslEngine, false);
-
-        } catch (Exception e) {
-            if (s_logger.isTraceEnabled()) {
-                s_logger.trace("Socket " + socket + " closed on read.  Probably -1 returned: " + e.getMessage());
-            }
-            try {
-                socketChannel.close();
-                socket.close();
-            } catch (IOException ignore) {
-            }
-            return;
-        }
-        
-        if (s_logger.isTraceEnabled()) {
-            s_logger.trace("SSL: Handshake done");
-        }
         socketChannel.configureBlocking(false);
         InetSocketAddress saddr = (InetSocketAddress)socket.getRemoteSocketAddress();
         Link link = new Link(saddr, this);
-        link.setSSLEngine(sslEngine);
         link.setKey(socketChannel.register(key.selector(), SelectionKey.OP_READ, link));
         Task task = _factory.create(Task.Type.CONNECT, link, null);
         registerLink(saddr, link);
@@ -246,6 +214,7 @@ public abstract class NioConnection implements Runnable {
                 }
                 return;
             }
+            s_logger.trace("Packet read completely");
             Task task = _factory.create(Task.Type.DATA, link, data);
             _executor.execute(task);
         } catch (Exception e) {
