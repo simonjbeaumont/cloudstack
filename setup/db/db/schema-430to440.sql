@@ -542,3 +542,5 @@ ALTER TABLE `cloud`.`s2s_vpn_gateway` ADD COLUMN `display` tinyint(1) NOT NULL D
 
 INSERT IGNORE INTO `cloud`.`guest_os` (id, uuid, category_id, display_name) VALUES (225, UUID(), 9, 'FreeBSD 10 (32-bit)');
 INSERT IGNORE INTO `cloud`.`guest_os` (id, uuid, category_id, display_name) VALUES (226, UUID(), 9, 'FreeBSD 10 (64-bit)');
+
+ALTER TABLE `cloud`.`vpc_offerings` ADD COLUMN supports_distributed_router boolean default false;
