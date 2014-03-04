@@ -79,11 +79,15 @@ public class VpcVO implements Vpc {
     @Column(name = "display", updatable = true, nullable = false)
     protected boolean display = true;
 
+    @Column(name="uses_distributed_router")
+    boolean usesDistributedRouter = false;
+
     public VpcVO() {
         this.uuid = UUID.randomUUID().toString();
     }
 
-    public VpcVO(long zoneId, String name, String displayText, long accountId, long domainId, long vpcOffId, String cidr, String networkDomain) {
+    public VpcVO(long zoneId, String name, String displayText, long accountId, long domainId, long vpcOffId, String cidr,
+                 String networkDomain, boolean useDistributedRouter) {
         this.zoneId = zoneId;
         this.name = name;
         this.displayText = displayText;
@@ -94,6 +98,7 @@ public class VpcVO implements Vpc {
         this.state = State.Enabled;
         this.networkDomain = networkDomain;
         this.vpcOfferingId = vpcOffId;
+        this.usesDistributedRouter = useDistributedRouter;
     }
 
     @Override
@@ -193,5 +198,10 @@ public class VpcVO implements Vpc {
     @Override
     public boolean isDisplay() {
         return display;
+    }
+
+    @Override
+    public boolean usesDistributedRouter() {
+        return usesDistributedRouter;
     }
 }
