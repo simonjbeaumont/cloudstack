@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -253,6 +254,18 @@ import com.ceph.rados.IoCTX;
 import com.ceph.rbd.Rbd;
 import com.ceph.rbd.RbdImage;
 import com.ceph.rbd.RbdException;
+
+import org.freedesktop.DBus;
+import org.freedesktop.dbus.DBusConnection;
+import org.freedesktop.dbus.exceptions.DBusExecutionException;
+import org.freedesktop.dbus.exceptions.DBusException;
+import org.freedesktop.dbus.DBusSigHandler;
+import org.freedesktop.dbus.DBusSignal;
+
+import org.xenserver.TaskOwner;
+import org.xenserver.CompletedHandler;
+import org.xenserver.Resource1;
+import org.xenserver.Task1;
 
 /**
  * LibvirtComputingResource execute requests on the computing/routing host using
@@ -498,6 +511,7 @@ ServerResource {
     public boolean configure(String name, Map<String, Object> params)
             throws ConfigurationException {
         boolean success = super.configure(name, params);
+        s_logger.debug("sjbx: configuring...");
         if (!success) {
             return false;
         }
@@ -2795,20 +2809,62 @@ ServerResource {
 
     private AttachVolumeAnswer execute(AttachVolumeCommand cmd) {
         try {
-            Connect conn = LibvirtConnection.getConnectionByVmName(cmd.getVmName());
-            KVMStoragePool primary = _storagePoolMgr.getStoragePool(
-                    cmd.getPooltype(),
-                    cmd.getPoolUuid());
-            KVMPhysicalDisk disk = primary.getPhysicalDisk(cmd.getVolumePath());
-            attachOrDetachDisk(conn, cmd.getAttach(), cmd.getVmName(), disk,
-                    cmd.getDeviceId().intValue(), cmd.getBytesReadRate(), cmd.getBytesWriteRate(), cmd.getIopsReadRate(), cmd.getIopsWriteRate());
-        } catch (LibvirtException e) {
-            return new AttachVolumeAnswer(cmd, e.toString());
-        } catch (InternalErrorException e) {
-            return new AttachVolumeAnswer(cmd, e.toString());
-        }
+            s_logger.debug("sjbx: Running DBUS alternative handler...");
+            int bus_type = DBusConnection.SESSION;
+            URI service_uri = null;
+            try {
+                service_uri = new URI("org.xenserver.foo1");
+            } catch (URISyntaxException e) {
+                s_logger.error("sjbx: URI invalid!");
+                return new AttachVolumeAnswer(cmd, "URI invalid!");
+            }
+            String global_uri = cmd.getVolumePath();
+            String operation_id = "attach";
 
-        return new AttachVolumeAnswer(cmd, cmd.getDeviceId(), cmd.getVolumePath());
+            s_logger.debug("sjbx: DBUS type: " + bus_type);
+            s_logger.debug("sjbx: service_uri: " + service_uri.toString());
+            s_logger.debug("sjbx: global_uri: " + global_uri);
+            s_logger.debug("sjbx: operation_id: " + operation_id);
+
+            DBusConnection conn = DBusConnection.getConnection(bus_type);
+            TaskOwner task_owner = new TaskOwner(conn);
+
+            String bus_name = service_uri.getScheme();
+            String obj_name = service_uri.getPath();
+            Resource1 client = conn.getRemoteObject(bus_name, obj_name, Resource1.class);
+            if (client == null) {
+                s_logger.error("Failed to connect to remote object " + obj_name + " on bus_name " + bus_name);
+                return new AttachVolumeAnswer(cmd, "Failed to connect");
+            }
+            String task = client.attach(global_uri, task_owner.getUri(), operation_id);
+            task_owner.add(task);
+            task_owner.setOwnEverything(false);
+
+            URI task_uri = null;
+            try {
+                task_uri = new URI(task);
+            } catch (URISyntaxException e) {
+                s_logger.error("sjbx: Received invalid URI " + task + " from service " + service_uri.toString());
+                return new AttachVolumeAnswer(cmd, e.toString());
+            }
+            Task1 task_client = conn.getRemoteObject(task_uri.getScheme(), task_uri.getPath(), Task1.class);
+            CompletedHandler ch = new CompletedHandler();
+            conn.addSigHandler(Task1.Completed.class, ch);
+            String result = null;
+            
+            try {
+                result = task_client.getResult();
+            } catch (UnsupportedOperationException e) {
+                s_logger.error(e.toString());
+                ch.waitForCompletion();
+                result = task_client.getResult();
+            }
+            s_logger.info("sjbx: Got result: " + result);
+            return new AttachVolumeAnswer(cmd, cmd.getDeviceId(), cmd.getVolumePath());
+        } catch (DBusException e) {
+            s_logger.error("sjbx: Caught DBusException: " + e.toString());
+            return new AttachVolumeAnswer(cmd, "Caught DBusException " + e.toString());
+        }
     }
 
     private Answer execute(ReadyCommand cmd) {
@@ -3989,6 +4045,7 @@ ServerResource {
 
     @Override
     public StartupCommand[] initialize() {
+        s_logger.debug("sjbx: starting si's modified kvm agent...");
         Map<String, State> changes = null;
 
         synchronized (_vms) {
