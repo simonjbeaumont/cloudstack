@@ -30,7 +30,7 @@
     </repository>
     <repository>
       <id>evolvis-org</id>
-      <url>maven-repo.evolvis.org/3rdparty/org/dbus/dbus-java</url>
+      <url>http://maven-repo.evolvis.org/3rdparty</url>
     </repository>
   </repositories>
   <dependencies>
@@ -57,10 +57,8 @@
     </dependency>
     <dependency>
       <groupId>org.freedesktop.dbus</groupId>
-       <artifactId>dbus</artifactId>
-       <scope>system</scope>
-       <systemPath>/usr/share/java/dbus-bin.jar</systemPath>
-       <version>${cs.dbus.version}</version>
+      <artifactId>dbus-java</artifactId>
+      <version>2.7</version>
     </dependency>
   </dependencies>
   <build>
