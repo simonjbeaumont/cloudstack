@@ -3584,6 +3584,66 @@ ServerResource {
     }
 
     protected StartAnswer execute(StartCommand cmd) {
+        s_logger.debug("sjbx: Running DBus stuff for StartCommand...");
+
+        {
+            try {
+                s_logger.debug("sjbx: Running DBUS alternative handler...");
+                int bus_type = DBusConnection.SESSION;
+                URI service_uri = null;
+                try {
+                    service_uri = new URI("org.xenserver.foo1");
+                } catch (URISyntaxException e) {
+                    s_logger.error("sjbx: URI invalid!");
+                }
+                String global_uri = cmd.getVirtualMachine().getName();
+                String operation_id = "attach";
+
+                s_logger.debug("sjbx: DBUS type: " + bus_type);
+                s_logger.debug("sjbx: service_uri: " + service_uri.toString());
+                s_logger.debug("sjbx: global_uri: " + global_uri);
+                s_logger.debug("sjbx: operation_id: " + operation_id);
+
+                DBusConnection conn = DBusConnection.getConnection(bus_type);
+                TaskOwner task_owner = new TaskOwner(conn);
+
+                String bus_name = service_uri.getScheme();
+                String obj_name = service_uri.getPath();
+                Resource1 client = conn.getRemoteObject(bus_name, obj_name, Resource1.class);
+                if (client == null) {
+                    s_logger.error("Failed to connect to remote object " + obj_name + " on bus_name " + bus_name);
+                }
+                String task = client.attach(global_uri, task_owner.getUri(), operation_id);
+                task_owner.add(task);
+                task_owner.setOwnEverything(false);
+
+                URI task_uri = null;
+                try {
+                    task_uri = new URI(task);
+                } catch (URISyntaxException e) {
+                    s_logger.error("sjbx: Received invalid URI " + task + " from service " + service_uri.toString());
+                }
+                Task1 task_client = conn.getRemoteObject(task_uri.getScheme(), task_uri.getPath(), Task1.class);
+                CompletedHandler ch = new CompletedHandler();
+                conn.addSigHandler(Task1.Completed.class, ch);
+                String result = null;
+
+                try {
+                    result = task_client.getResult();
+                } catch (UnsupportedOperationException e) {
+                    s_logger.error(e.toString());
+                    ch.waitForCompletion();
+                    result = task_client.getResult();
+                }
+                s_logger.info("sjbx: Got result: " + result);
+                // return new AttachVolumeAnswer(cmd, cmd.getDeviceId(), cmd.getVolumePath());
+            } catch (DBusException e) {
+                s_logger.error("sjbx: Caught DBusException: " + e.toString());
+                // return new AttachVolumeAnswer(cmd, "Caught DBusException " + e.toString());
+            }
+        }
+        s_logger.debug("sjbx: continuing with normal StartCommand handler..");
+
         VirtualMachineTO vmSpec = cmd.getVirtualMachine();
         vmSpec.setVncAddr(cmd.getHostIp());
         String vmName = vmSpec.getName();
