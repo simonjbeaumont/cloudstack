@@ -2810,7 +2810,7 @@ ServerResource {
     private AttachVolumeAnswer execute(AttachVolumeCommand cmd) {
         try {
             s_logger.debug("sjbx: Running DBUS alternative handler...");
-            int bus_type = DBusConnection.SESSION;
+            int bus_type = DBusConnection.SYSTEM;
             URI service_uri = null;
             try {
                 service_uri = new URI("org.xenserver.foo1");
@@ -3589,7 +3589,7 @@ ServerResource {
         {
             try {
                 s_logger.debug("sjbx: Running DBUS alternative handler...");
-                int bus_type = DBusConnection.SESSION;
+                int bus_type = DBusConnection.SYSTEM;
                 URI service_uri = null;
                 try {
                     service_uri = new URI("org.xenserver.foo1");
@@ -3600,6 +3600,7 @@ ServerResource {
                 String operation_id = "attach";
 
                 s_logger.debug("sjbx: DBUS type: " + bus_type);
+                s_logger.debgu("sjbx: "+DBusConnection.SYSTEM+" = SYSTEM; "+DBusConnection.SESSION+" = SESSION;");
                 s_logger.debug("sjbx: service_uri: " + service_uri.toString());
                 s_logger.debug("sjbx: global_uri: " + global_uri);
                 s_logger.debug("sjbx: operation_id: " + operation_id);
